@@ -1,0 +1,11 @@
+{
+  "name": "oneday-open",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests.mjs",
+    "check": "node --check core.mjs && node --check app.mjs && node --check sw.js && node --test tests.mjs"
+  },
+  "engines": { "node": ">=20" }
+}

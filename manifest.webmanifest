@@ -1,0 +1,1 @@
+{"name":"OneDay Open","short_name":"OneDay","description":"Useful everyday actions in one private browser workspace.","start_url":"./","scope":"./","display":"standalone","background_color":"#f8f5ef","theme_color":"#f8f5ef","icons":[{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}
