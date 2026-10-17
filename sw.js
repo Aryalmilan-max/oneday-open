@@ -1,5 +1,5 @@
-const CACHE = 'oneday-open-v2';
-const ASSETS = ['./', './index.html', './styles.css', './app.mjs', './core.mjs', './icon.svg', './manifest.webmanifest'];
+const CACHE = 'oneday-open-v3';
+const ASSETS = ['./', './index.html', './styles.css', './app.mjs', './guide.mjs', './core.mjs', './icon.svg', './manifest.webmanifest'];
 self.addEventListener('install', event => { event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS))); self.skipWaiting(); });
 self.addEventListener('activate', event => { event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key))))); self.clients.claim(); });
 self.addEventListener('fetch', event => {

@@ -21,21 +21,25 @@
     <section class="hero" id="top" aria-labelledby="hero-title">
       <div class="hero-copy">
         <p class="eyebrow"><span class="status-dot"></span> Free • open source • no account for core tools</p>
-        <h1 id="hero-title">Everyday tasks.<br><em>One calm place.</em></h1>
-        <p class="lead">Paste a message, link, bill, or thought. OneDay helps you understand it, act on it, and keep moving—with clear choices and no mystery steps.</p>
-        <form id="quickForm" class="quick-box">
-          <label for="quickInput">What are you working with?</label>
-          <textarea id="quickInput" rows="3" placeholder="Paste a link, note, message, or text from a document…"></textarea>
-          <div class="quick-actions"><span>Stays in this browser until you choose an online tool.</span><button type="submit" class="primary">Find useful actions <span aria-hidden="true">→</span></button></div>
-        </form>
-        <div id="suggestions" class="suggestions" aria-live="polite"></div>
+        <h1 id="hero-title">Just say what<br><em>you need to do.</em></h1>
+        <p class="lead">OneDay turns everyday requests into useful actions. Ask in plain words, follow a short prompt, or open any tool yourself.</p>
+        <div class="guide-shell" aria-label="OneDay conversation guide">
+          <div class="guide-head"><span><span class="status-dot"></span> OneDay Guide <small>Free · runs in this browser</small></span><button id="clearGuide" type="button" class="text-button">New conversation</button></div>
+          <div id="guideMessages" class="guide-messages" role="log" aria-label="Conversation" aria-live="polite"></div>
+          <form id="quickForm" class="guide-composer">
+            <label for="quickInput">Your message</label>
+            <textarea id="quickInput" rows="2" placeholder="Try: split 1200 between 4, or add task call the bank…"></textarea>
+            <div class="guide-composer-actions"><span>Typed messages stay here. Voice input may use your browser's speech service.</span><div><button id="speakGuide" type="button" class="ghost" title="Dictate a message if your browser supports speech recognition">🎙 Speak</button><button type="submit" class="primary">Send <span aria-hidden="true">→</span></button></div></div>
+          </form>
+          <div id="suggestions" class="suggestions" aria-label="Example requests"></div>
+        </div>
       </div>
-      <div class="hero-visual" aria-hidden="true">
-        <div class="visual-card visual-input"><small>ONE INPUT</small><strong>“Can you split this bill and remind me Friday?”</strong><span>Message • photo • link • file</span></div>
-        <div class="visual-line"></div>
-        <div class="visual-results"><div><span class="tile-icon">÷</span><b>Split</b><small>Fair shares</small></div><div><span class="tile-icon">◷</span><b>Remind</b><small>On time</small></div><div><span class="tile-icon">⌁</span><b>Save</b><small>Find later</small></div></div>
-        <p class="visual-caption">Small actions, connected into a useful next step.</p>
-      </div>
+      <aside class="dayboard" id="dayboard" aria-labelledby="dayboard-title">
+        <div class="dayboard-top"><p class="eyebrow">YOUR DAY AT A GLANCE</p><h2 id="dayboard-title">Pick up where<br>you left off.</h2><p>Saved here, on this browser.</p></div>
+        <div id="dayboardCounts" class="dayboard-counts"></div>
+        <div id="dayboardNext" class="dayboard-next"></div>
+        <div class="dayboard-footer"><button type="button" data-tool="tasks">Open tasks →</button><button type="button" data-tool="notes">Find notes →</button></div>
+      </aside>
     </section>
 
     <section class="trust-strip" aria-label="Product principles"><span><b>27</b> tool actions</span><span><b>6</b> everyday areas</span><span><b>0</b> required accounts</span><span><b>Open</b> source code</span></section>
@@ -53,7 +57,7 @@
       <div id="toolResult" class="tool-result" aria-live="polite" hidden></div>
     </section>
 
-    <section class="how-section" id="how"><div><p class="eyebrow">SIMPLE BY DESIGN</p><h2>One flow, many answers.</h2></div><div class="steps"><article><span>01</span><h3>Bring something in</h3><p>Paste text or a link, choose a tool, or pick a file. Nothing is sent by the basic tools.</p></article><article><span>02</span><h3>Choose the action</h3><p>Use a focused tool or follow a suggested next step. Online tools state the service they use.</p></article><article><span>03</span><h3>Keep the result</h3><p>Copy, download, or save it on this device. Your data stays yours to export or clear.</p></article></div></section>
+    <section class="how-section" id="how"><div><p class="eyebrow">SIMPLE BY DESIGN</p><h2>Say it. Do it. Keep going.</h2></div><div class="steps"><article><span>01</span><h3>Ask naturally</h3><p>Type “split 1200 between 4,” “add task call home,” or paste something you want to work with.</p></article><article><span>02</span><h3>Get a useful step</h3><p>The browser guide answers common requests directly and asks when a detail is missing. File and online actions open a focused tool.</p></article><article><span>03</span><h3>Stay in control</h3><p>Saved items stay on this device. Export or clear them any time. The guide uses clear rules and does not pretend to understand everything.</p></article></div></section>
 
     <section class="privacy-section" id="privacy"><div><p class="eyebrow">YOUR DATA, YOUR CHOICE</p><h2>No account needed.<br>No hidden upload.</h2><p>Notes, tasks, reminders, and expenses are stored in this browser. Translation sends the entered text to MyMemory; exchange rates query ExchangeRate-API; OCR and PDF tools download open-source browser libraries. These online actions run only after you select them. This browser storage is not encrypted—avoid saving secrets on shared devices.</p><div class="privacy-actions"><button id="exportData" class="secondary" type="button">Export my saved data</button><button id="clearData" class="text-button" type="button">Clear saved data</button></div></div><div class="privacy-graphic" aria-hidden="true"><span>YOUR DEVICE</span><strong>◌</strong><small>Local by default</small></div></section>
   </main>
