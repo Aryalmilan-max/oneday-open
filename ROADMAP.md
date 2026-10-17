@@ -1,10 +1,11 @@
 # Roadmap
 
-The first release provides 27 focused actions and a shared input. The next work is quality and depth, based on real feedback.
+The public beta provides 27 focused actions, a browser-based conversation guide, and a local day dashboard. The next work is quality and depth, based on real feedback.
 
 ## Next
 
 - Add realistic browser integration tests for key cross-tool flows.
+- Improve guide intent coverage and clarify ambiguous requests without guessing.
 - Add localization infrastructure and reviewed translations.
 - Improve date and amount extraction for more scripts and formats.
 - Improve saved-data search, edit, and import with conflict handling.

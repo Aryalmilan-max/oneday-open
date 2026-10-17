@@ -1,10 +1,10 @@
 # OneDay Open
 
-**One input. Useful next steps.** OneDay Open is a mobile-first, open-source browser workspace for everyday words, links, money, plans, and files. It brings focused actions into one place and lets you move a result to a related action. There is no account requirement for the core tools.
+**Say what you need to do. Get a useful next step.** OneDay Open is a mobile-first, open-source browser workspace for everyday words, links, money, plans, and files. A free browser guide handles common requests in plain language, asks for missing details, and opens a focused tool when needed. There is no account requirement for the core tools.
 
 ![OneDay Open homepage](assets/preview.png)
 
-> Public beta, v0.1.0. This is a real tool collection, not a general AI assistant. Some actions require a network connection or browser support, and none should be treated as professional advice or a guarantee of safety.
+> Public beta, v0.2.0. The guide uses explicit rules and local calculations, not a general AI model. It will not understand every request. Some actions require a network connection or browser support, and none should be treated as professional advice or a guarantee of safety.
 
 ## Try it
 
@@ -18,13 +18,19 @@ python3 -m http.server 8000
 
 Visit `http://localhost:8000`. A local server is needed for modules and the service worker.
 
-### Three quick examples
+### Talk to the guide
 
-1. Paste a message that contains an amount. Choose **Find key details → Expense log**; the amount and currency carry over.
-2. Paste a URL. Choose **Inspect a link → Clean a link → Quick notes**.
-3. Scan an image or extract PDF text, then choose **Quick summary** or **Translate text**.
+Try these exact requests in the conversation box:
 
-The home input suggests actions. Every tool also works on its own.
+- `split a bill` → answer the total and number of people, or type `split 1200 between 4 with 10% tip` for a direct result.
+- `add task call the bank`, `show tasks`, then `mark task bank done`.
+- `note: bring documents`, then `find notes about documents`.
+- `remind me to call Alex tomorrow at 9am` → a local reminder and downloadable calendar file.
+- `clean this link: https://example.com/?utm_source=ad&item=1`.
+- `20% of 350`, `convert 5 km to mi`, or `how much have I spent`.
+- Paste a long message, then ask `summarize that` or `find details in that`.
+
+The guide also routes requests for translation, OCR, PDF work, image compression, and replies to focused tools. Its **Speak** button uses browser speech recognition when supported. You can always search and open any of the 27 tools directly.
 
 ## 27 actions in one repository
 
@@ -41,7 +47,7 @@ The summary is extractive, the reply starter uses editable templates, link inspe
 
 ## Privacy and external services
 
-Most actions run in the browser. Notes, tasks, expenses, and reminders use this browser's `localStorage`; use **Export my saved data** to keep a copy. Browser storage is not encrypted. OneDay does not have a user account, analytics, or a server collecting your inputs.
+The guide runs in the browser. Conversation messages are kept only in the open page and disappear when it reloads or you start a new conversation. Notes, tasks, expenses, and reminders use this browser's `localStorage`; use **Export my saved data** to keep a copy. Browser storage is not encrypted. OneDay does not have a user account, analytics, or a server collecting your inputs.
 
 The following actions have explicit online dependencies:
 
@@ -58,7 +64,7 @@ See [PRIVACY.md](PRIVACY.md) for details and limits.
 
 ## Why one repo?
 
-OneDay has a shared input and a shared result flow. The same text can become a summary, note, task, calendar event, or share card. The code is intentionally buildless HTML, CSS, and JavaScript so anyone can inspect, fork, and host it without a paid service. The service worker caches first-party app files for offline use after the first visit. Online-dependent actions still need connectivity.
+OneDay has a shared conversation and a shared result flow. The same text can become a summary, note, task, calendar event, or share card. The guide's parser is in `guide.mjs` and has no AI service dependency. The code is intentionally buildless HTML, CSS, and JavaScript so anyone can inspect, fork, and host it without a paid service. The service worker caches first-party app files for offline use after the first visit. Online-dependent actions still need connectivity.
 
 ## Test and contribute
 

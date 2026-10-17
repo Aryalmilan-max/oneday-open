@@ -1,4 +1,5 @@
 import { escapeHtml, textStats, summarize, extractDetails, compareLines, inspectUrl, cleanUrl, verifyQuote, splitBill, percentOf, convertUnit, tidyText, makeReply, makeIcs } from './core.mjs';
+import { planGuide } from './guide.mjs';
 
 const $ = selector => document.querySelector(selector);
 const storageKey = 'oneday-open-v1';
@@ -9,6 +10,8 @@ let activeTool = null;
 let activeCategory = 'All';
 let quickText = '';
 let lastAmount = '';
+const guideState = { lastText: '', pending: null };
+const guideActions = new Map();
 const related = { summary: ['notes','share-card'], details: ['tasks','reminder','expense'], ocr: ['summary','details','translate'], 'pdf-text': ['summary','details','translate'], transcribe: ['tidy','reply','notes'], bill: ['expense','reminder'], url: ['clean-link','notes'], translate: ['read','reply'], compare: ['notes','share-card'], expense: ['reminder'] };
 
 function readState() {
@@ -17,7 +20,7 @@ function readState() {
     return { notes: Array.isArray(parsed.notes) ? parsed.notes : [], tasks: Array.isArray(parsed.tasks) ? parsed.tasks : [], expenses: Array.isArray(parsed.expenses) ? parsed.expenses : [], reminders: Array.isArray(parsed.reminders) ? parsed.reminders : [] };
   } catch { return { notes: [], tasks: [], expenses: [], reminders: [] }; }
 }
-function saveState() { localStorage.setItem(storageKey, JSON.stringify(state)); }
+function saveState() { localStorage.setItem(storageKey, JSON.stringify(state)); renderDashboard(); }
 function field(name, label, type = 'text', extra = {}) { return { name, label, type, ...extra }; }
 function downloadBlob(blob, name) {
   const url = URL.createObjectURL(blob);
@@ -90,7 +93,7 @@ const tools = [
   { id: 'percent', category: 'Money', icon: '%', title: 'Percentage calculator', desc: 'Find a discount, tip, or percentage amount.', fields: [field('value', 'Amount', 'number', { step: 'any', required: true }), field('percent', 'Percent', 'number', { step: 'any', required: true })], run: async v => result(`${v.percent}% of ${v.value} = ${percentOf(v.value, v.percent).toLocaleString(undefined, { maximumFractionDigits: 6 })}`) },
   { id: 'units', category: 'Money', icon: '↔', title: 'Unit converter', desc: 'Convert length, mass, volume, or temperature.', fields: [field('value', 'Value', 'number', { step: 'any', required: true }), field('from', 'From', 'select', { options: [['km','Kilometers'],['mi','Miles'],['m','Meters'],['ft','Feet'],['kg','Kilograms'],['lb','Pounds'],['l','Liters'],['gal','Gallons'],['c','Celsius'],['f','Fahrenheit']] }), field('to', 'To', 'select', { options: [['mi','Miles'],['km','Kilometers'],['ft','Feet'],['m','Meters'],['lb','Pounds'],['kg','Kilograms'],['gal','Gallons'],['l','Liters'],['f','Fahrenheit'],['c','Celsius']] })], run: async v => result(`${v.value} ${v.from} = ${convertUnit(v.value, v.from, v.to).toLocaleString(undefined, { maximumFractionDigits: 6 })} ${v.to}`) },
   { id: 'currency', category: 'Money', icon: '¤', title: 'Currency estimate', desc: 'Convert with a dated reference rate.', note: 'Online: queries ExchangeRate-API. Rates are indicative, not a payment quote.', fields: [field('amount', 'Amount', 'number', { step: 'any', required: true }), field('from', 'From', 'select', { options: [['USD','USD'],['EUR','EUR'],['GBP','GBP'],['NPR','NPR'],['INR','INR'],['JPY','JPY'],['AUD','AUD']] }), field('to', 'To', 'select', { options: [['NPR','NPR'],['USD','USD'],['EUR','EUR'],['GBP','GBP'],['INR','INR'],['JPY','JPY'],['AUD','AUD']] })], run: async v => { const data = await fetchJson(`https://open.er-api.com/v6/latest/${encodeURIComponent(v.from)}`); const rate = data.rates?.[v.to]; if (data.result !== 'success' || !Number.isFinite(rate)) throw new Error('Rate unavailable for this pair.'); return result(`${Number(v.amount).toLocaleString()} ${v.from} ≈ ${(Number(v.amount) * rate).toLocaleString(undefined, { maximumFractionDigits: 2 })} ${v.to}\nRate: ${rate}\nLast updated: ${data.time_last_update_utc ?? 'unknown'}\nProvider: ExchangeRate-API. Check your actual provider rate before paying.`); } },
-  { id: 'expense', category: 'Money', icon: '▥', title: 'Expense log', desc: 'Save simple expenses on this device.', fields: [field('description', 'What was it?', 'text', { required: true }), field('amount', 'Amount', 'number', { step: '0.01', min: 0, required: true }), field('currency', 'Currency label', 'text', { value: 'USD' })], run: async v => { if (!Number.isFinite(Number(v.amount)) || Number(v.amount) < 0) throw new Error('Enter a valid amount.'); state.expenses.push({ id: crypto.randomUUID(), description: v.description.trim(), amount: Number(v.amount), currency: v.currency.trim().toUpperCase(), at: new Date().toISOString() }); saveState(); return { html: savedPanel('expenses') }; } },
+  { id: 'expense', category: 'Money', icon: '▥', title: 'Expense log', desc: 'Save simple expenses on this device.', fields: [field('description', 'What was it?', 'text', { required: true }), field('amount', 'Amount', 'number', { step: '0.01', min: 0, required: true }), field('currency', 'Currency label', 'text', { value: 'USD', required: true })], run: async v => { if (!Number.isFinite(Number(v.amount)) || Number(v.amount) < 0) throw new Error('Enter a valid amount.'); if (!v.currency.trim()) throw new Error('Enter a currency label.'); state.expenses.push({ id: crypto.randomUUID(), description: v.description.trim(), amount: Number(v.amount), currency: v.currency.trim().toUpperCase(), at: new Date().toISOString() }); saveState(); return { html: savedPanel('expenses') }; } },
   { id: 'notes', category: 'Organize', icon: '▤', title: 'Quick notes', desc: 'Capture and find notes stored in this browser.', fields: [field('note', 'Your note', 'textarea', { wide: true, required: true, prefill: true })], run: async v => { state.notes.push({ id: crypto.randomUUID(), text: v.note.trim(), at: new Date().toISOString() }); saveState(); return { html: savedPanel('notes') }; } },
   { id: 'tasks', category: 'Organize', icon: '✓', title: 'Task list', desc: 'Keep your next actions in one place.', fields: [field('task', 'Task', 'text', { required: true, prefill: true })], run: async v => { state.tasks.push({ id: crypto.randomUUID(), text: v.task.trim(), done: false }); saveState(); return { html: savedPanel('tasks') }; } },
   { id: 'reminder', category: 'Organize', icon: '◷', title: 'Due-date reminder', desc: 'Save a due date and download a calendar event.', note: 'Local reminders appear only while this page is open; use the calendar download for device notifications.', fields: [field('title', 'What to remember?', 'text', { required: true, prefill: true }), field('when', 'When', 'datetime-local', { required: true })], run: async v => { const date = new Date(v.when); if (!Number.isFinite(date.getTime()) || date <= new Date()) throw new Error('Choose a future date and time.'); state.reminders.push({ id: crypto.randomUUID(), title: v.title.trim(), when: date.toISOString(), shown: false }); saveState(); const ics = makeIcs(v.title, date, new Date(date.getTime() + 30 * 60_000)); downloadBlob(new Blob([ics], { type: 'text/calendar' }), 'oneday-reminder.ics'); return { html: `<p>Calendar file downloaded. Open it to add device notifications.</p>${savedPanel('reminders')}` }; } },
@@ -117,7 +120,7 @@ function renderField(f) {
   else input = `<input id="f-${f.name}" name="${f.name}" type="${f.type}"${attrs}${f.value !== undefined ? ` value="${escapeHtml(f.value)}"` : ''}>`;
   return `<div class="field${f.wide ? ' wide' : ''}"><label for="f-${f.name}">${escapeHtml(f.label)}</label>${input}</div>`;
 }
-function openTool(id) {
+function openTool(id, overrides = {}) {
   const tool = tools.find(t => t.id === id); if (!tool) return;
   activeTool = tool;
   $('#workspaceCategory').textContent = tool.category;
@@ -131,6 +134,7 @@ function openTool(id) {
     if (['amount','total'].includes(f.name) && lastAmount) input.value = lastAmount;
     if (['description','title'].includes(f.name) && quickText && ['expense','reminder','share-card'].includes(tool.id)) input.value = quickText.slice(0, 100);
     if (f.name === 'currency' && quickText) { const match = quickText.match(/\b(?:NPR|USD|EUR|GBP|INR|JPY|AUD)\b/i); if (match) input.value = match[0].toUpperCase(); }
+    if (overrides[f.name] !== undefined) input.value = overrides[f.name];
   }
   $('#toolResult').hidden = true; $('#workspace').hidden = false;
   if (savedKinds.has(id)) showResult({ html: savedPanel(id) });
@@ -155,20 +159,82 @@ function showResult(output, error = false) {
 }
 function checkReminders() {
   let changed = false;
-  for (const item of state.reminders) if (!item.shown && new Date(item.when) <= new Date()) { item.shown = true; changed = true; const alertBox = document.createElement('div'); alertBox.className = 'suggestions'; alertBox.setAttribute('role', 'status'); alertBox.textContent = `Reminder: ${item.title}`; $('#suggestions').prepend(alertBox); }
+  for (const item of state.reminders) if (!item.shown && new Date(item.when) <= new Date()) { item.shown = true; changed = true; appendGuideMessage('guide', `Reminder: ${item.title}`); }
   if (changed) saveState();
+}
+
+function renderDashboard() {
+  const openTasks = state.tasks.filter(x => !x.done).length;
+  const future = state.reminders.filter(x => new Date(x.when) > new Date()).sort((a, b) => new Date(a.when) - new Date(b.when));
+  $('#dayboardCounts').innerHTML = `<div><b>${openTasks}</b><span>Open tasks</span></div><div><b>${state.notes.length}</b><span>Notes</span></div><div><b>${future.length}</b><span>Upcoming</span></div><div><b>${state.expenses.length}</b><span>Expenses</span></div>`;
+  $('#dayboardNext').innerHTML = future.length ? `<small>NEXT REMINDER</small><strong>${escapeHtml(future[0].title)}</strong><span>${escapeHtml(new Date(future[0].when).toLocaleString())}</span>` : '<small>NEXT REMINDER</small><strong>Nothing scheduled yet</strong><span>Ask “remind me to…” to start.</span>';
+}
+function appendGuideMessage(role, content, actions = []) {
+  const item = document.createElement('article'); item.className = `guide-message ${role}`;
+  const name = document.createElement('small'); name.textContent = role === 'you' ? 'You' : 'OneDay Guide';
+  const body = document.createElement('p'); body.textContent = content;
+  item.append(name, body);
+  if (actions.length) {
+    const row = document.createElement('div'); row.className = 'guide-actions';
+    for (const action of actions) {
+      const key = crypto.randomUUID(); guideActions.set(key, action);
+      const button = document.createElement('button'); button.type = 'button'; button.dataset.guideAction = key; button.textContent = `${action.label} →`; row.append(button);
+    }
+    item.append(row);
+  }
+  $('#guideMessages').append(item); $('#guideMessages').scrollTop = $('#guideMessages').scrollHeight;
+}
+function applyGuideEffect(effect) {
+  if (!effect) return;
+  if (effect.kind === 'task') state.tasks.push({ id: crypto.randomUUID(), text: effect.text, done: false });
+  if (effect.kind === 'note') state.notes.push({ id: crypto.randomUUID(), text: effect.text, at: new Date().toISOString() });
+  if (effect.kind === 'complete-task') { const item = state.tasks.find(x => x.id === effect.id); if (!item) throw new Error('That task was not found.'); item.done = true; }
+  if (effect.kind === 'reminder') {
+    const date = new Date(effect.when);
+    if (!Number.isFinite(date.getTime()) || date <= new Date()) throw new Error('That time has passed. Choose a future date and time.');
+    state.reminders.push({ id: crypto.randomUUID(), title: effect.title, when: effect.when, shown: false });
+    const ics = makeIcs(effect.title, date, new Date(date.getTime() + 30 * 60_000));
+    downloadBlob(new Blob([ics], { type: 'text/calendar' }), 'oneday-reminder.ics');
+  }
+  saveState();
+}
+function sendGuide(input) {
+  const message = input.trim(); if (!message) return;
+  appendGuideMessage('you', message);
+  try {
+    const response = planGuide(message, { ...guideState, saved: state });
+    applyGuideEffect(response.effect);
+    guideState.pending = 'pending' in response ? response.pending : null;
+    if (response.rememberText) { guideState.lastText = response.rememberText; quickText = response.rememberText; }
+    appendGuideMessage('guide', response.text, response.actions);
+  } catch (error) { appendGuideMessage('guide', error instanceof Error ? error.message : 'I could not complete that. Try the focused tool below.'); }
+}
+function startGuide() {
+  $('#guideMessages').replaceChildren(); guideActions.clear(); guideState.lastText = ''; guideState.pending = null; quickText = ''; lastAmount = '';
+  appendGuideMessage('guide', 'Hi. Tell me what you need to do. I can help directly with common requests, or guide you to one of the tools. What is on your mind?');
 }
 
 $('#filters').addEventListener('click', e => { const cat = e.target.closest('[data-category]')?.dataset.category; if (!cat) return; activeCategory = cat; renderFilters(); renderGrid(); });
 $('#toolSearch').addEventListener('input', renderGrid);
 $('#toolGrid').addEventListener('click', e => { const id = e.target.closest('[data-tool]')?.dataset.tool; if (id) openTool(id); });
 $('#quickForm').addEventListener('submit', e => {
-  e.preventDefault(); quickText = $('#quickInput').value.trim();
-  if (!quickText) { $('#quickInput').focus(); return; }
-  const ids = /^https?:\/\//i.test(quickText) ? ['url','clean-link','notes'] : extractDetails(quickText).amounts.length ? ['details','bill','expense','reminder'] : ['summary','details','tidy','notes','tasks'];
-  $('#suggestions').innerHTML = `<span class="tool-note">Useful next steps:</span>${ids.map(id => { const t = tools.find(x => x.id === id); return `<button type="button" data-tool="${id}">${escapeHtml(t.title)} →</button>`; }).join('')}`;
+  e.preventDefault(); const input = $('#quickInput').value; $('#quickInput').value = ''; sendGuide(input);
 });
-$('#suggestions').addEventListener('click', e => { const id = e.target.closest('[data-tool]')?.dataset.tool; if (id) openTool(id); });
+$('#quickInput').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('#quickForm').requestSubmit(); } });
+$('#suggestions').addEventListener('click', e => { const prompt = e.target.closest('[data-example]')?.dataset.example; if (prompt) { sendGuide(prompt); $('#quickInput').focus(); } });
+$('#guideMessages').addEventListener('click', e => { const key = e.target.closest('[data-guide-action]')?.dataset.guideAction; const action = guideActions.get(key); if (action) openTool(action.id, action.prefill); });
+$('#dayboard').addEventListener('click', e => { const id = e.target.closest('[data-tool]')?.dataset.tool; if (id) openTool(id); });
+$('#clearGuide').addEventListener('click', () => { startGuide(); $('#quickInput').value = ''; $('#quickInput').focus(); });
+$('#speakGuide').addEventListener('click', () => {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) { appendGuideMessage('guide', 'Speech input is not supported here. Type your request, or try a browser with speech recognition.'); return; }
+  const button = $('#speakGuide'); const recognition = new SpeechRecognition(); recognition.lang = navigator.language || 'en-US'; recognition.interimResults = false;
+  button.disabled = true; button.textContent = 'Listening…';
+  recognition.onresult = event => { $('#quickInput').value = event.results[0][0].transcript; $('#quickInput').focus(); };
+  recognition.onerror = event => appendGuideMessage('guide', `Speech input: ${event.error}. You can still type your request.`);
+  recognition.onend = () => { button.disabled = false; button.textContent = '🎙 Speak'; };
+  recognition.start();
+});
 $('#toolForm').addEventListener('submit', async e => {
   e.preventDefault(); if (!activeTool) return;
   const form = e.currentTarget; const button = form.querySelector('[type=submit]');
@@ -200,6 +266,7 @@ $('#toolResult').addEventListener('input', e => {
 });
 $('#closeWorkspace').addEventListener('click', () => { $('#workspace').hidden = true; activeTool = null; $('#tools').scrollIntoView({ behavior: 'smooth' }); });
 $('#exportData').addEventListener('click', () => downloadBlob(new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), ...state }, null, 2)], { type: 'application/json' }), 'oneday-data.json'));
-$('#clearData').addEventListener('click', () => { if (confirm('Clear all OneDay notes, tasks, reminders, and expenses on this device?')) { localStorage.removeItem(storageKey); for (const key of ['notes','tasks','expenses','reminders']) state[key] = []; alert('Saved data cleared on this device.'); } });
-renderFilters(); renderGrid(); checkReminders(); setInterval(checkReminders, 60_000);
+$('#clearData').addEventListener('click', () => { if (confirm('Clear all OneDay notes, tasks, reminders, and expenses on this device?')) { localStorage.removeItem(storageKey); for (const key of ['notes','tasks','expenses','reminders']) state[key] = []; renderDashboard(); appendGuideMessage('guide', 'Saved data cleared from this device.'); } });
+$('#suggestions').innerHTML = '<span>Try:</span><button type="button" data-example="split a bill">Split a bill</button><button type="button" data-example="add task">Add a task</button><button type="button" data-example="remind me">Set a reminder</button><button type="button" data-example="clean this link">Clean a link</button>';
+renderFilters(); renderGrid(); renderDashboard(); startGuide(); checkReminders(); setInterval(checkReminders, 60_000);
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
