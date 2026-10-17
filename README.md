@@ -2,6 +2,8 @@
 
 **One input. Useful next steps.** OneDay Open is a mobile-first, open-source browser workspace for everyday words, links, money, plans, and files. It brings focused actions into one place and lets you move a result to a related action. There is no account requirement for the core tools.
 
+![OneDay Open homepage](assets/preview.png)
+
 > Public beta, v0.1.0. This is a real tool collection, not a general AI assistant. Some actions require a network connection or browser support, and none should be treated as professional advice or a guarantee of safety.
 
 ## Try it
@@ -18,7 +20,7 @@ Visit `http://localhost:8000`. A local server is needed for modules and the serv
 
 ### Three quick examples
 
-1. Paste a message that contains an amount. Choose **Find key details → Split a bill → Expense log**.
+1. Paste a message that contains an amount. Choose **Find key details → Expense log**; the amount and currency carry over.
 2. Paste a URL. Choose **Inspect a link → Clean a link → Quick notes**.
 3. Scan an image or extract PDF text, then choose **Quick summary** or **Translate text**.
 
