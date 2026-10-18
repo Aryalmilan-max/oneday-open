@@ -217,6 +217,7 @@ function startGuide() {
 $('#filters').addEventListener('click', e => { const cat = e.target.closest('[data-category]')?.dataset.category; if (!cat) return; activeCategory = cat; renderFilters(); renderGrid(); });
 $('#toolSearch').addEventListener('input', renderGrid);
 $('#toolGrid').addEventListener('click', e => { const id = e.target.closest('[data-tool]')?.dataset.tool; if (id) openTool(id); });
+$('#start').addEventListener('click', e => { const id = e.target.closest('[data-tool]')?.dataset.tool; if (id) openTool(id); });
 $('#quickForm').addEventListener('submit', e => {
   e.preventDefault(); const input = $('#quickInput').value; $('#quickInput').value = ''; sendGuide(input);
 });

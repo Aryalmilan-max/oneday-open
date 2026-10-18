@@ -52,3 +52,16 @@
 @media(max-width:1050px){.hero{grid-template-columns:1fr;min-height:auto}.guide-shell{max-width:none}.dayboard{display:grid;grid-template-columns:1fr 1.4fr;gap:1rem;align-items:center}.dayboard-top{grid-row:span 2}.dayboard-next{margin:0}.dayboard-footer{grid-column:2}}
 @media(max-width:700px){.hero{padding:2rem 1rem}.hero h1{font-size:clamp(2.9rem,10vw,4.4rem)}.guide-messages{max-height:260px}.dayboard{grid-template-columns:1fr;padding:1.3rem}.dayboard-top{grid-row:auto}.dayboard-footer{grid-column:1}.guide-composer-actions{align-items:flex-start;flex-direction:column}.guide-composer-actions>div{width:100%}.guide-composer-actions button{flex:1}.guide-head{padding:.9rem}}
 @media(min-width:1051px){.hero{padding:clamp(2rem,3.5vw,3.5rem);margin-top:1rem;min-height:680px}.hero h1{font-size:clamp(3.1rem,4.7vw,5rem)}.hero .lead{font-size:1.04rem;line-height:1.48}.guide-shell{margin-top:1.15rem}.guide-messages{min-height:125px;max-height:210px;padding:1rem 1.2rem}}
+
+/* Clear entry points for common tasks */
+.start-section{max-width:1450px;margin:auto;padding:3rem clamp(1.25rem,5vw,5rem) 2rem}
+.start-section h2{font-size:clamp(2.2rem,4vw,4rem);line-height:1.1;letter-spacing:-.06em;margin:.8rem 0 1rem}
+.start-section>p:not(.eyebrow){color:#617067;line-height:1.6}
+.start-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin:2rem 0 1rem}
+.start-grid article{background:#fff;border:1px solid #e1e4dd;border-radius:20px;padding:1.5rem}
+.start-grid h3{font-size:1.12rem;letter-spacing:-.025em;margin-bottom:.65rem}
+.start-grid p{color:#617067;font-size:.87rem;line-height:1.6;min-height:4.2rem}
+.start-grid button{background:#edf4e8;border:0;border-radius:9px;padding:.65rem .8rem;color:#2e5529;font-weight:750;font-size:.78rem;margin:.2rem .35rem .2rem 0}
+.start-grid button:hover{background:#d9ebcf}
+.start-section .start-note{font-size:.78rem}
+@media(max-width:800px){.start-grid{grid-template-columns:1fr}.start-grid p{min-height:0}}

@@ -18,6 +18,21 @@ python3 -m http.server 8000
 
 Visit `http://localhost:8000`. A local server is needed for modules and the service worker.
 
+## Start with a task
+
+You do not need to learn a new workflow. Tell the guide what you want, or choose a tool:
+
+| If you need to… | Open… | What it does |
+| --- | --- | --- |
+| Split a restaurant bill | [Split a bill](https://aryalmilan-max.github.io/oneday-open/#tools) | Divides a total and optional tip evenly. |
+| Remember something | [Task list and notes](https://aryalmilan-max.github.io/oneday-open/#tools) | Saves items in this browser, with an export option. |
+| Remove tracking from a URL | [Clean a link](https://aryalmilan-max.github.io/oneday-open/#tools) | Removes common tracking parameters; review the result before sharing. |
+| Understand a long message | [Quick summary](https://aryalmilan-max.github.io/oneday-open/#tools) | Selects key sentences from pasted text. |
+| Work with a document | [Combine PDFs or extract text](https://aryalmilan-max.github.io/oneday-open/#tools) | Processes files in the browser after loading the required library. |
+| Shrink a photo | [Compress an image](https://aryalmilan-max.github.io/oneday-open/#tools) | Resizes and downloads a JPEG on your device. |
+
+OneDay is a conversation-first everyday toolkit, not an AI assistant or a full document editor. It is useful when you want a small task done quickly, without an account or a paid plan.
+
 ### Talk to the guide
 
 Try these exact requests in the conversation box:
